@@ -1,0 +1,78 @@
+---
+- name: install needed packages for python/postgresql Centos
+  yum: 
+    name: python-devel
+    state: latest
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: install needed packages for python/postgresql Ubuntu
+  apt:
+    name: python-dev 
+    state: latest
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+
+
+- name: install needed packages for python/postgresql Centos
+  yum: 
+    name: postgresql-devel
+    state: latest
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+
+- name: isntall needed packages for python/postgresql Ubuntu
+  apt:
+    name: postgresql-server-dev-10
+    state: latest
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+
+- name: install pip python
+  package:
+    name: python-pip
+    state: installed
+
+- name: install psycopg2
+  pip: 
+    name: psycopg2
+
+- name: psycopg2-binary
+  pip: 
+    name: psycopg2-binary
+
+
+- name: create database
+  become_user: postgres
+  postgresql_db:
+    name: "{{ item.key }}"
+  with_dict: "{{ services }}"
+
+- name: create users
+  become_user: postgres
+  postgresql_user:
+    name: "{{ item.value.user }}"
+    password: "{{ item.value.password }}"
+    encrypted: true
+  with_dict: "{{ services }}"
+
+- name: givin the privileges
+  become_user: postgres
+  postgresql_privs:
+    db: "{{ item.key }}"
+    role: "{{ item.value.user }}"
+    objs: ALL_IN_SCHEMA
+    privs: SELECT,INSERT,UPDATE,DELETE
+  with_dict: "{{ services }}"
+
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+# local   all             all                                     trust
+
+# До лучших времен
+#- name: insert "{{ item.value.user }}" to pg_hba.conf
+#  lineinfile:
+#    path: "/var/lib/pgsql/{{ postgresql_version }}/data/pg_hba.conf"
+#    regexp: '^#host'
+#    insertafter: EOF
+#    line: "host {{ item.key }} {{ item.value.user }} {{ groups[item.key][inventory_hostname] | to_yaml }}   md5"
+#    state: present
+#  with_dict: "{{ services }}"

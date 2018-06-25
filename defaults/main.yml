@@ -1,0 +1,11 @@
+postgresql_version: 10
+
+## example of services: 
+# database / user / pass for each service 
+services:
+  database_name:
+    user:  
+    password: 
+  database_name:
+    user: 
+    password: 
