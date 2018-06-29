@@ -1,4 +1,10 @@
 ---
+
+- name: install epel-release
+  yum:
+    name: epel-release
+    state: latest
+    
 - name: install needed packages for python/postgresql Centos
   yum: 
     name: python-devel
